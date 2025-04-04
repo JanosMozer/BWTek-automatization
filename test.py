@@ -1,81 +1,146 @@
-import numpy as np
+from datetime import datetime
 import matplotlib.pyplot as plt
-from Controller.devices.bwtek.spectrometer import spectrometer
-from lantz import Q_
-from ctypes import c_int, c_ulong, POINTER, create_string_buffer
+from Controller.spectrometer import SimpleSpectrometer
+import numpy as np
 
-def run_measurement():
-    # Initialize the spectrometer (channel 0)
-    with spectrometer(0) as spec:
+def run_pl_measurement(
+    integration_time=100,
+    gain=1.0,
+    save_data=True,
+    show_plot=True,
+    wavelength_range=None,
+    num_measurements=1,
+    average_scans=True,
+    dark_correction=False,
+    smooth_data=False,
+    custom_filename=None
+):
+    """
+    Args:
+        integration_time: Integration time in milliseconds
+        gain: Detector gain value
+        save_data: Whether to save the data to a file
+        show_plot: Whether to show the plot
+        wavelength_range: Optional tuple (min_wl, max_wl) to restrict wavelength range
+        num_measurements: Number of consecutive measurements to perform
+        average_scans: Whether to average multiple measurements (True) or return all (False)
+        dark_correction: Whether to perform dark spectrum subtraction
+        smooth_data: Whether to apply smoothing to the spectrum
+        custom_filename: Custom base filename for saving data
+    
+    Returns:
+        If average_scans=True: (wavelengths, intensities)
+        If average_scans=False: (wavelengths, list_of_intensities)
+    """
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename_base = custom_filename if custom_filename else f"pl_spectrum_{timestamp}"
+    
+    # Store results from multiple measurements
+    all_intensities = []
+    
+    with SimpleSpectrometer(0) as spec:
         # Initialize the device
         status = spec.initDevice()
-        print(f"Device initialization status: {status}")
+        if status != 0:
+            print(f"Warning: Device initialization returned status {status}")
         
         # Read EEPROM data
-        spec.readEEPROM("calibration.dat")
+        eeprom_file = f"calibration_{timestamp}.dat"
+        spec.readEEPROM(eeprom_file)
         
-        # Test USB connection
-        connection_status = spec.testUSB()
-        print(f"USB connection test: {connection_status}")
+        # Set measurement parameters
+        spec.integrationTime = integration_time
+        spec.set_gain(gain)
         
-        # Set integration time (100 milliseconds)
-        spec.integrationTime = 100 * Q_('ms')
-        print(f"Integration time set to: {spec.integrationTime}")
+        # Check connection
+        connection = spec.checkConnection()
+        print(f"Connection status: {connection}")
         
-        # Get spectrum data from the spectrometer
-        wavelengths, intensities = get_spectrum_data(spec)
+        # Acquire dark spectrum if requested
+        dark_intensities = None
+        if dark_correction:
+            print("Acquiring dark spectrum...")
+            # You would need to implement a way to block light or turn off excitation
+            # This is just a placeholder for the concept
+            _, dark_intensities = spec.get_spectrum()
         
-        # Plot the spectrum
-        plt.figure(figsize=(10, 6))
-        plt.plot(wavelengths, intensities)
-        plt.xlabel('Wavelength (nm)')
-        plt.ylabel('Intensity')
-        plt.title('BWTek Spectrometer Measurement')
-        plt.grid(True)
-        plt.savefig('spectrum.png')
-        plt.show()
+        # Perform multiple measurements
+        for i in range(num_measurements):
+            print(f"Taking measurement {i+1} of {num_measurements}...")
+            
+            # Get spectrum data
+            wavelengths, intensities = spec.get_spectrum()
+            
+            # Apply dark correction if requested
+            if dark_correction and dark_intensities is not None:
+                intensities = intensities - dark_intensities
+                intensities = np.maximum(intensities, 0)  # Ensure no negative values
+            
+            # Apply wavelength range restriction if specified
+            if wavelength_range:
+                min_wl, max_wl = wavelength_range
+                mask = (wavelengths >= min_wl) & (wavelengths <= max_wl)
+                wavelengths = wavelengths[mask]
+                intensities = intensities[mask]
+            
+            # Apply smoothing if requested
+            if smooth_data:
+                intensities = smooth_spectrum(intensities)
+            
+            all_intensities.append(intensities)
+            
+            # Save individual data if requested and not averaging
+            if save_data and not average_scans:
+                data_file = f"{filename_base}_scan{i+1}.csv"
+                spec.save_spectrum(wavelengths, intensities, data_file)
         
-        # Close the connection
-        spec.close()
-        print("Measurement completed successfully")
+        # Process results based on averaging option
+        if average_scans and num_measurements > 1:
+            intensities = np.mean(all_intensities, axis=0)
+            print(f"Averaged {num_measurements} measurements")
+            
+            # Save averaged data if requested
+            if save_data:
+                data_file = f"{filename_base}_averaged.csv"
+                spec.save_spectrum(wavelengths, intensities, data_file)
+        else:
+            intensities = all_intensities
+        
+        # Plot the data
+        if show_plot:
+            if average_scans or num_measurements == 1:
+                plot_file = f"{filename_base}.png" if save_data else None
+                spec.plot_spectrum(wavelengths, intensities, show=True, save=save_data, filename=plot_file)
+            else:
+                # Plot multiple spectra
+                plt.figure(figsize=(10, 6))
+                for i, intens in enumerate(intensities):
+                    plt.plot(wavelengths, intens, label=f"Scan {i+1}")
+                
+                plt.xlabel('Wavelength (nm)')
+                plt.ylabel('Intensity')
+                plt.title(f'BWTek Spectrometer: Multiple Measurements\n'
+                          f'Integration: {integration_time} ms, Gain: {gain}')
+                plt.grid(True)
+                plt.legend()
+                
+                if save_data:
+                    plot_file = f"{filename_base}_multi.png"
+                    plt.savefig(plot_file)
+                    print(f"Saved multi-scan plot to {plot_file}")
+                
+                if show_plot:
+                    plt.show()
+                else:
+                    plt.close()
+        
+        print("PL measurement completed successfully")
+        return wavelengths, intensities
 
-def get_spectrum_data(spec):
-    """
-    Get spectral data from the spectrometer
-    """
-    # Number of pixels in the spectrometer
-    pixel_count = 2048
-    
-    # Create a buffer to store the spectral data
-    # Each pixel value is represented as an unsigned 16-bit integer (2 bytes)
-    buffer_size = pixel_count * 2
-    buffer = create_string_buffer(buffer_size)
-    
-    # Call the BWTek library function to read spectral data
-    # Based on the naming convention in other methods
-    result = spec.lib.bwtekGetSpectrumUSB(buffer, spec.channel)
-    
-    if result != 0:
-        print(f"Error reading spectrum data. Error code: {result}")
-        # Return dummy data in case of error
-        return np.zeros(pixel_count), np.zeros(pixel_count)
-    
-    # Convert buffer to numpy array of intensity values
-    # The data is stored as 16-bit unsigned integers
-    intensities = np.frombuffer(buffer, dtype=np.uint16, count=pixel_count)
-    
-    # Convert pixel indices to wavelengths using calibration coefficients
-    # These coefficients are from the 't' configuration file
-    a0 = 221.556159175733
-    a1 = 0.52819936440007
-    a2 = -5.4613963289515E-05
-    a3 = -1.96442414820937E-09
-    
-    wavelengths = np.zeros(pixel_count)
-    for i in range(pixel_count):
-        wavelengths[i] = a0 + a1*i + a2*i*i + a3*i*i*i
-    
-    return wavelengths, intensities
+
+def smooth_spectrum(intensities, window_size=5):
+    """Apply simple moving average smoothing to spectrum data."""
+    return np.convolve(intensities, np.ones(window_size)/window_size, mode='same')
 
 if __name__ == "__main__":
-    run_measurement()
+    run_pl_measurement(integration_time=100, gain=1.0)
