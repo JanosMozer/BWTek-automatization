@@ -8,11 +8,16 @@ from ctypes import CDLL, c_int, c_double, POINTER, create_string_buffer
 bwtek_dll = CDLL(r"c:\Users\User\Documents\Programming\BWTek-automatization\BWTek\SDK-SL Download\Current SDK-SL Software\SDK-SL v1.0.0.9 Installation\64bit\DLL_64bit\BWTEKUSB.dll")
 
 def log_message(message, log_file="measurement_log.txt"):
-    """Log messages to a file."""
+    """Log messages to both a file and the terminal."""
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    formatted_message = f"[{timestamp}] {message}"
+    
+    # Log to the terminal
+    print(formatted_message)
+    
+    # Log to the file
     with open(log_file, "a") as f:
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        f.write(f"[{timestamp}] {message}\n")
-    print(message)
+        f.write(formatted_message + "\n")
 
 def pl_measurement(
     integration_time=100,
@@ -24,22 +29,7 @@ def pl_measurement(
     wavelength_range=(0, 1500),
     perform_dark_correction=False
 ):
-    """
-    Perform a PL measurement with optional dark spectrum subtraction.
 
-    Args:
-        integration_time (int): Integration time in milliseconds.
-        interval (int): Time interval between measurements in seconds.
-        num_measurements (int): Number of measurements to perform.
-        save_data (bool): Whether to save the data to a file.
-        show_plot (bool): Whether to display the plot.
-        custom_filename (str): Custom filename for saving data.
-        wavelength_range (tuple): Allowed wavelength range (min, max).
-        perform_dark_correction (bool): Whether to subtract a dark spectrum.
-
-    Returns:
-        tuple: (wavelengths, intensities) if successful.
-    """
     try:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename_base = custom_filename if custom_filename else f"pl_measurement_{timestamp}"
