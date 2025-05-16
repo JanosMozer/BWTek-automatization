@@ -1,6 +1,6 @@
 import ctypes
 import os
-
+#trial
 def list_dll_functions(dll_path):
     """
     Lists all the functions exported by a DLL file.
