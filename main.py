@@ -4,8 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from ctypes import CDLL, c_int, c_double, POINTER, create_string_buffer
 
-# Load the BWTek DLL
-bwtek_dll = CDLL(r"c:\Users\User\Documents\Programming\BWTek-automatization\BWTek\SDK-SL Download\Current SDK-SL Software\SDK-SL v1.0.0.9 Installation\64bit\DLL_64bit\BWTEKUSB.dll")
+# Load the LabVIEW DLL from VER1.3
+bwtek_dll = CDLL(r"c:\Users\User\Documents\Programming\BWTek-automatization\BWTek\VER1.3\BWTEKUSB.dll")
 
 def log_message(message, log_file="measurement_log.txt"):
     """Log messages to both a file and the terminal."""
@@ -29,7 +29,6 @@ def pl_measurement(
     wavelength_range=(0, 1500),
     perform_dark_correction=False
 ):
-
     try:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename_base = custom_filename if custom_filename else f"pl_measurement_{timestamp}"
