@@ -1,0 +1,22 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build with g++",
+            "type": "shell",
+            "command": "g++",
+            "args": [
+                "main.cpp",
+                "-o",
+                "main",
+                "-Lc:/Users/User/Documents/Programming/BWTek-automatization/BTC655_BTC655N/BTC655_Demo_DLL_v1.0.0.2/BWTEKUSB_TEST",
+                "-lBWTEKUSB"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": ["$gcc"]
+        }
+    ]
+}

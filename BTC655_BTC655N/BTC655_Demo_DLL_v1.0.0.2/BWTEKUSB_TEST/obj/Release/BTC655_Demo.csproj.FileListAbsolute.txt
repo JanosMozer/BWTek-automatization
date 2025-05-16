@@ -22,3 +22,15 @@ X:\QA\Software Pre - Release\SDK-S\SDK-S v1.0.0.7\64bit\SDK Sample\BTC655_BTC655
 X:\QA\Software Pre - Release\SDK-S\SDK-S v1.0.0.7\64bit\SDK Sample\BTC655_BTC655N\BTC655_Demo_DLL_v1.0.0.2\BWTEKUSB_TEST\obj\Release\BTC655_Demo.pdb
 C:\LIXIN\DISK_SDK_Windows\SDK-S v1.0.0.8\64bit\SDK Sample\BTC655_BTC655N\BTC655_Demo_DLL_v1.0.0.2\BWTEKUSB_TEST\obj\Release\BTC655_Demo.exe
 C:\LIXIN\DISK_SDK_Windows\SDK-S v1.0.0.8\64bit\SDK Sample\BTC655_BTC655N\BTC655_Demo_DLL_v1.0.0.2\BWTEKUSB_TEST\obj\Release\BTC655_Demo.pdb
+C:\Users\User\Documents\Programming\BWTek-automatization\BTC655_BTC655N\BTC655_Demo_DLL_v1.0.0.2\BWTEKUSB_TEST\bin\Release\BTC655_Demo.exe
+C:\Users\User\Documents\Programming\BWTek-automatization\BTC655_BTC655N\BTC655_Demo_DLL_v1.0.0.2\BWTEKUSB_TEST\bin\Release\BTC655_Demo.pdb
+C:\Users\User\Documents\Programming\BWTek-automatization\BTC655_BTC655N\BTC655_Demo_DLL_v1.0.0.2\BWTEKUSB_TEST\bin\Release\CyUSB.dll
+C:\Users\User\Documents\Programming\BWTek-automatization\BTC655_BTC655N\BTC655_Demo_DLL_v1.0.0.2\BWTEKUSB_TEST\bin\Release\SpecGraph.dll
+C:\Users\User\Documents\Programming\BWTek-automatization\BTC655_BTC655N\BTC655_Demo_DLL_v1.0.0.2\BWTEKUSB_TEST\obj\Release\BTC655_Demo.csproj.AssemblyReference.cache
+C:\Users\User\Documents\Programming\BWTek-automatization\BTC655_BTC655N\BTC655_Demo_DLL_v1.0.0.2\BWTEKUSB_TEST\obj\Release\BTC655_Demo.Form1.resources
+C:\Users\User\Documents\Programming\BWTek-automatization\BTC655_BTC655N\BTC655_Demo_DLL_v1.0.0.2\BWTEKUSB_TEST\obj\Release\BTC655_Demo.Properties.Resources.resources
+C:\Users\User\Documents\Programming\BWTek-automatization\BTC655_BTC655N\BTC655_Demo_DLL_v1.0.0.2\BWTEKUSB_TEST\obj\Release\BTC655_Demo.csproj.GenerateResource.cache
+C:\Users\User\Documents\Programming\BWTek-automatization\BTC655_BTC655N\BTC655_Demo_DLL_v1.0.0.2\BWTEKUSB_TEST\obj\Release\BTC655_Demo.csproj.CoreCompileInputs.cache
+C:\Users\User\Documents\Programming\BWTek-automatization\BTC655_BTC655N\BTC655_Demo_DLL_v1.0.0.2\BWTEKUSB_TEST\obj\Release\BTC655_D.5C8979F2.Up2Date
+C:\Users\User\Documents\Programming\BWTek-automatization\BTC655_BTC655N\BTC655_Demo_DLL_v1.0.0.2\BWTEKUSB_TEST\obj\Release\BTC655_Demo.exe
+C:\Users\User\Documents\Programming\BWTek-automatization\BTC655_BTC655N\BTC655_Demo_DLL_v1.0.0.2\BWTEKUSB_TEST\obj\Release\BTC655_Demo.pdb
