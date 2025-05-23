@@ -19,7 +19,7 @@ namespace BTC655_Demo
     public partial class Form1 : Form
     {
         //The total number of connected spectrometers
-        public const int DEVICE_NUM_MAX= 32;
+        public const int DEVICE_NUM_MAX = 32;
 
         //the unique identify value of spectrometer
         public enum TypeID
@@ -122,7 +122,7 @@ namespace BTC655_Demo
             public int timing_mode;                //timing mode of spectrometer
             public int input_mode;                 //input mode of spectrometer
             public int xaxis_data_reverse;         //the x-axis inverse flag of spectrum
-            
+
             public double inttime;                 //exposure time of spectrometer (double format)
             public int inttime_int;                //exposure time of spectrometer (integer format)
             public double inttime_min;             //minimum exposure time of spectrometer
@@ -146,9 +146,9 @@ namespace BTC655_Demo
             public double coefficient_b2;          //B2,coefficient of wavelength convert to pixel
             public double coefficient_b3;          //B3,coefficient of wavelength convert to pixel
                                                    //pixel=B0+B1*wavelength+B2*wavelength^2+B3*wavelength^3
-          
+
             public double[] wavelength;            //the array of wavelength           
-            public ushort[] DataArray ;            //the array of spectrum data
+            public ushort[] DataArray;            //the array of spectrum data
 
             public int scan_flag;                  //scan flag, 1=single scan, 2=continuously scan 
             public int stop_flag;                  //stop flag, 1=stop scan 
@@ -162,17 +162,17 @@ namespace BTC655_Demo
             public int ExternalTemp_Set;           //the default setting temperature of External Board.
 
         }
-        public static Spec_Para_Struct[] spec_para = new Spec_Para_Struct[DEVICE_NUM_MAX+1];
+        public static Spec_Para_Struct[] spec_para = new Spec_Para_Struct[DEVICE_NUM_MAX + 1];
 
         public int[] spec_initialize;             //initialize flag array of conneccted spectrometers  
         public int[] spec_channel;                //channel value array of connected spectrometers
         public int[] spec_usbtype;                //USB interface type of connected spectrometers, 2=usb2.03=usb3.0
         string[] spec_ccode;                      //ccode array of connected spectrometers  
-        string[] spec_deviceid ;                  //deviceid array of connected spectrometers
+        string[] spec_deviceid;                  //deviceid array of connected spectrometers
 
         int device_count;                         //the total number of connected spectrometers  
         int current_deviceindex;                  //the active index of connected spectrometers 
-        int scan_count=0;                         //the count value of scan data
+        int scan_count = 0;                         //the count value of scan data
 
         USBDeviceList usbDevices = null;          //the instance of USBDevice List     
         CyUSBDevice spectrometerDevice = null;    //the instance of USB Device     
@@ -181,17 +181,26 @@ namespace BTC655_Demo
 
         Thread td;                                //thread
         delegate void DeleFunc();                 //delagate function 
-        DeleFunc de;                              
+        DeleFunc de;
         DeleFunc de1;
 
-        Graphics myGraphics;                      
+        Graphics myGraphics;
         double[] databuf;                         //data array
-        
+
         //the setting of display chart
         int chart_xMin;                           //x-axis min of chart 
         int chart_xMax;                           //x-axis max of chart 
         int chart_yMin;                           //y-axis min of chart 
         int chart_yMax;                           //y-axis max of chart 
+
+        // Dark spectrum data
+        bool isDarkSpectrumCaptured = false;
+        ushort[] darkSpectrum;
+
+        // Auto-Scan fields
+        private bool isAutoScanning = false;
+        private string autoScanSaveFolder;
+        private int autoScanIntervalMilliseconds;
 
 
         //Initialize USB Devices
@@ -274,7 +283,7 @@ namespace BTC655_Demo
         //read one block to customer eeprom 
         [DllImport("bwtekusb.dll")]
         public static extern Int32 bwtekReadBlockUSB(Int32 nAddrress, byte[] pDataArray, Int32 nNum, Int32 nChannel);
-        
+
         //close the commuminication with specify spectrometer, it should be used when close programm.
         [DllImport("BWTEKUSB.DLL")]
         static extern int bwtekCloseUSB(int channel);
@@ -297,7 +306,7 @@ namespace BTC655_Demo
 
         //read the ccd temperature
         [DllImport("bwtekusb.dll")]
-        public static extern Int32 bwtekReadTemperature(Int32 nADChannel,ref Int32 nADValue,ref double dTemperature,Int32 nChannel);
+        public static extern Int32 bwtekReadTemperature(Int32 nADChannel, ref Int32 nADValue, ref double dTemperature, Int32 nChannel);
 
         //define the pulse output
         [DllImport("BWTEKUSB.DLL")]
@@ -313,26 +322,57 @@ namespace BTC655_Demo
         private void InitForm()
         {
             init_variable();
+            InitializeAutoScanComponents(); // Call new initialization method
 
             usbDevices = new USBDeviceList(CyConst.DEVICES_CYUSB);
-            RefreshDeviceTree(); 
+            RefreshDeviceTree();
             usbDevices.DeviceAttached += new EventHandler(usbDevices_DeviceAttached);
             usbDevices.DeviceRemoved += new EventHandler(usbDevices_DeviceRemoved);
         }
 
+        private void InitializeAutoScanComponents()
+        {
+            // Populate ComboBox for units
+            comboBoxAutoScanUnit.Items.AddRange(new object[] { "Minutes", "Hours" });
+            comboBoxAutoScanUnit.SelectedIndex = 1; // Default to Hours
+
+            // Set default interval
+            textBoxAutoScanInterval.Text = "6";
+
+            // Set default save folder
+            autoScanSaveFolder = Path.Combine(Application.StartupPath, "AutomatedScans");
+            if (!Directory.Exists(autoScanSaveFolder))
+            {
+                try
+                {
+                    Directory.CreateDirectory(autoScanSaveFolder);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Could not create default save folder for auto-scans: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    autoScanSaveFolder = Application.StartupPath; // Fallback
+                }
+            }
+            UpdateAutoScanStatus("Idle. Save folder: " + autoScanSaveFolder);
+
+            // Wire up timer tick event (Timer itself is added in Designer.cs)
+            this.timerAutoScan.Tick += new System.EventHandler(this.timerAutoScan_Tick);
+        }
+
+
         //initialize the space for connected spectrometers
         void init_variable()
         {
-           spec_initialize = new int[DEVICE_NUM_MAX]; 
-           spec_usbtype = new int[DEVICE_NUM_MAX];
-           spec_channel = new int[DEVICE_NUM_MAX];
-           spec_ccode = new string[DEVICE_NUM_MAX];
-           spec_deviceid= new string[DEVICE_NUM_MAX];
+            spec_initialize = new int[DEVICE_NUM_MAX];
+            spec_usbtype = new int[DEVICE_NUM_MAX];
+            spec_channel = new int[DEVICE_NUM_MAX];
+            spec_ccode = new string[DEVICE_NUM_MAX];
+            spec_deviceid = new string[DEVICE_NUM_MAX];
 
-           for (int i = 0; i < DEVICE_NUM_MAX; i++) 
-           {
-               spec_initialize[i] = 0; spec_channel[i] = 0; spec_usbtype[i] = 0;               
-           }
+            for (int i = 0; i < DEVICE_NUM_MAX; i++)
+            {
+                spec_initialize[i] = 0; spec_channel[i] = 0; spec_usbtype[i] = 0;
+            }
         }
         void RefreshDeviceTree()
         {
@@ -348,13 +388,13 @@ namespace BTC655_Demo
         //USE Device Adding
         void usbDevices_DeviceAttached(object sender, EventArgs e)
         {
-            RefreshDeviceTree();               
+            RefreshDeviceTree();
         }
 
         //USE Device Removed
         void usbDevices_DeviceRemoved(object sender, EventArgs e)
         {
-            RefreshDeviceTree();               
+            RefreshDeviceTree();
         }
 
         //select active spectromter on DeviceTreeView component 
@@ -466,12 +506,12 @@ namespace BTC655_Demo
                         panel2.Enabled = true;
                         panel3.Enabled = true;
                         panel4.Enabled = true;
-                        panel5.Enabled = true;
+                        groupBoxAutoScan.Enabled = true;
 
                         current_deviceindex = 0;
                         comboBox1_Channel.Text = comboBox1_Channel.Items[current_deviceindex].ToString();
                         comboBox_Spectrometer.Text = comboBox_Spectrometer.Items[current_deviceindex].ToString();
-                        
+
                         //setup spectrometer using parameters that read from para_#.ini
                         SetupSpectrmeter(current_deviceindex);
 
@@ -494,7 +534,7 @@ namespace BTC655_Demo
                     panel2.Enabled = false;
                     panel3.Enabled = false;
                     panel4.Enabled = false;
-                    panel5.Enabled = false;
+                    groupBoxAutoScan.Enabled = false;
                 }
             }
         }
@@ -507,14 +547,14 @@ namespace BTC655_Demo
 
             string section_str = "SPECTROMETER";
             int spectrometer_type = Convert.ToInt32(myini.ReadString(section_str, "spectrometer_type", "14")); //the unique identify value of spectrometer
-            
-            section_str=get_section(spectrometer_type);  //the block name
+
+            section_str = get_section(spectrometer_type);  //the block name
             int pixelnumber = Convert.ToInt32(myini.ReadString(section_str, "pixelnumber", "2048")); //CCD pixel number of spectrometer.
             int timing_mode = Convert.ToInt32(myini.ReadString(section_str, "timing_mode", "1"));    //timing mode of spectrometer
             int input_mode = Convert.ToInt32(myini.ReadString(section_str, "input_mode", "1"));      //input mode of spectrometer
             int inttime_unit = Convert.ToInt32(myini.ReadString(section_str, "inttime_unit", "1"));  //the unit of exposure time,0=us, 1=ms ,2=us
-            int inttime_base = Convert.ToInt32(myini.ReadString(section_str, "intTimeBase", "0"));	 //the offset of exposure time 		   
-            int inttime_min = Convert.ToInt32(myini.ReadString(section_str, "inttime_min", "10"));	 //minimum exposure time of spectrometer		               
+            int inttime_base = Convert.ToInt32(myini.ReadString(section_str, "intTimeBase", "0"));   //the offset of exposure time 		   
+            int inttime_min = Convert.ToInt32(myini.ReadString(section_str, "inttime_min", "10"));   //minimum exposure time of spectrometer		               
 
 
             section_str = "COMMON";
@@ -535,8 +575,8 @@ namespace BTC655_Demo
             int shutter_inverse = Convert.ToInt32(myini.ReadString("EXTERNAL_IO", "TTL4_Inverse", "0")); //shutter pin inverse flag
 
             int tmp_flag = 0;
-            int CCDTemp_Set=0;
-            int ExternalTemp_Set=0;
+            int CCDTemp_Set = 0;
+            int ExternalTemp_Set = 0;
             if (spectrometer_type == (int)TypeID.BTC655_MODE) tmp_flag = 2;
             if (spectrometer_type == (int)TypeID.BTC655N_MODE) tmp_flag = 2;
             if (spectrometer_type == (int)TypeID.BTC665_MODE) tmp_flag = 1;
@@ -544,7 +584,7 @@ namespace BTC655_Demo
             if (spectrometer_type == (int)TypeID.BTC675_MODE) tmp_flag = 1;
             if (tmp_flag != 0)
             {
-                if (tmp_flag == 1) { CCDTemp_Set = Convert.ToInt32(myini.ReadString("COMMON", "CCDTemp_Set", "-2"));}  //
+                if (tmp_flag == 1) { CCDTemp_Set = Convert.ToInt32(myini.ReadString("COMMON", "CCDTemp_Set", "-2")); }  //
                 else { CCDTemp_Set = Convert.ToInt32(myini.ReadString("COMMON", "CCDTemp_Set", "0")); }
                 ExternalTemp_Set = Convert.ToInt32(myini.ReadString("COMMON", "ExternalTemp_Set", "25"));
             }
@@ -552,7 +592,7 @@ namespace BTC655_Demo
             spec_para[Index].cCode = ccode;
             spec_para[Index].channel = Index;
             spec_para[Index].spectrometer_type = spectrometer_type;
-            spec_para[Index].model=model;
+            spec_para[Index].model = model;
             spec_para[Index].pixel_number = pixelnumber;
             spec_para[Index].timing_mode = timing_mode;
             spec_para[Index].input_mode = input_mode;
@@ -586,89 +626,89 @@ namespace BTC655_Demo
 
         private string get_section(int spectrometer_type)
         {
-            string tmp_section="";
+            string tmp_section = "";
             switch (spectrometer_type)
             {
-                   case 0: tmp_section = "BRC100"; break;
-                   case 1: tmp_section = "BRC100"; break;
-                   case 2: tmp_section = "BTC120"; break;
-                   case 3: tmp_section = "BTC121"; break;
-                   case 4: tmp_section = "BTC200"; break;
-                   case 5: tmp_section = "BTC300"; break;
-                   case 6: tmp_section = "BTC320"; break;
-                   case 7: tmp_section = "BTC400"; break;
-                   case 8: tmp_section = "BTC500"; break;
-                   case 9: tmp_section = "BRC110"; break;
-                   case 10: tmp_section = "BTC111"; break;
-                   case 11: tmp_section = "BRC111"; break;
-                   case 12: tmp_section = "BTC611"; break;
-                   case 13: tmp_section = "BRC711"; break;
-                   case 14: tmp_section = "BTC112"; break;
-                   case 15: tmp_section = "BTC211"; break;
-                   case 16: tmp_section = "BTC15x"; break;
-                   case 17: tmp_section = "BRC112"; break;
-                   case 18: tmp_section = "BRC311"; break;
-                   case 19: tmp_section = "BTC311"; break;
-                   case 20: tmp_section = "BTC610"; break;
-                   case 21: tmp_section = "BTC321"; break;
-                   case 22: tmp_section = "BTF111"; break;
-                   case 23: tmp_section = "BTC811"; break;
-                   case 24: tmp_section = "BTC221"; break;
-                   case 25: tmp_section = "BTC251"; break;
-                   case 26: tmp_section = "BTC711"; break;
-                   case 27: tmp_section = "BTC611E_512"; break;
-                   case 28: tmp_section = "BTC611E_1024"; break;
-                   case 29: tmp_section = "BTC711E_512"; break;
-                   case 30: tmp_section = "BTC711E_1024"; break;
-                   case 31: tmp_section = "BRC711E_512"; break;
-                   case 32: tmp_section = "BRC711E_1024"; break;
-                   case 33: tmp_section = "BTF113"; break;
-                   case 34: tmp_section = "BWS003"; break;
-                   case 35: tmp_section = "BWS004"; break;
-                   case 36: tmp_section = "BTC221E_G9208_256W"; break;
-                   case 37: tmp_section = "BTU111"; break;
-                   case 38: tmp_section = "BTC251E_512_RS232"; break;
-                   case 39: tmp_section = "BTC251E_512"; break;
-                   case 40: tmp_section = "BTC261E_512_RS232"; break;
-                   case 41: tmp_section = "BTC261E_512"; break;
-                   case 42: tmp_section = "BTC261E_256"; break;
-                   case 43: tmp_section = "BTC261E_1024"; break;
-                   case 44: tmp_section = "BRC131"; break;
-                   case 45: tmp_section = "BTC262E_256"; break;
-                   case 46: tmp_section = "BTC262E_512"; break;
-                   case 47: tmp_section = "BTC262E_1024"; break;
-                   case 48: tmp_section = "BRC100_OEM"; break;
-                   case 49: tmp_section = "BRC641"; break;
-                   case 50: tmp_section = "BTC613E_512"; break;
-                   case 51: tmp_section = "BTC613E_1024"; break;
-                   case 52: tmp_section = "BTC651E_512"; break;
-                   case 53: tmp_section = "BTC651E_1024"; break;
-                   case 54: tmp_section = "BWS225_256"; break;
-                   case 55: tmp_section = "BWS225_512"; break;
-                   case 56: tmp_section = "BTC641"; break;
-                   case 57: tmp_section = "BWS102"; break;
-                   case 58: tmp_section = "BWS003B"; break;
-                   case 59: tmp_section = "BWS435"; break;
-                   case 60: tmp_section = "BRC642E_2048"; break;
-                   case 61: tmp_section = "BTC263E_256"; break;
-                   case 62: tmp_section = "BRC113"; break;
-                   case 63: tmp_section = "BRC112P"; break;
-                   case 64: tmp_section = "BTC261P_512"; break;
-                   case 65: tmp_section = "BRC115"; break;
-                   case 66: tmp_section = "BTC665"; break;
-                   case 67: tmp_section = "BTC675"; break;
-                   case 68: tmp_section = "BTC655"; break;
-                   case 69: tmp_section = "BTC264P_512"; break;
-                   case 70: tmp_section = "BTC264P_1024"; break;
-                   case 71: tmp_section = "BRC1k"; break;
-                   case 72: tmp_section = "BTC665N"; break;
-                   case 73: tmp_section = "BRC115P"; break;
-                   case 74: tmp_section = "BTC655N"; break;
-                   case 75: tmp_section = "BTC264P_512_RS232"; break;
-                   case 76: tmp_section = "BTC261P_256"; break;
-                   case 77: tmp_section = "BTC667N"; break;
-                   case 78: tmp_section = "BTC675N"; break;
-                   case 79: tmp_section = "BTC261P_1024"; break;
+                case 0: tmp_section = "BRC100"; break;
+                case 1: tmp_section = "BRC100"; break;
+                case 2: tmp_section = "BTC120"; break;
+                case 3: tmp_section = "BTC121"; break;
+                case 4: tmp_section = "BTC200"; break;
+                case 5: tmp_section = "BTC300"; break;
+                case 6: tmp_section = "BTC320"; break;
+                case 7: tmp_section = "BTC400"; break;
+                case 8: tmp_section = "BTC500"; break;
+                case 9: tmp_section = "BRC110"; break;
+                case 10: tmp_section = "BTC111"; break;
+                case 11: tmp_section = "BRC111"; break;
+                case 12: tmp_section = "BTC611"; break;
+                case 13: tmp_section = "BRC711"; break;
+                case 14: tmp_section = "BTC112"; break;
+                case 15: tmp_section = "BTC211"; break;
+                case 16: tmp_section = "BTC15x"; break;
+                case 17: tmp_section = "BRC112"; break;
+                case 18: tmp_section = "BRC311"; break;
+                case 19: tmp_section = "BTC311"; break;
+                case 20: tmp_section = "BTC610"; break;
+                case 21: tmp_section = "BTC321"; break;
+                case 22: tmp_section = "BTF111"; break;
+                case 23: tmp_section = "BTC811"; break;
+                case 24: tmp_section = "BTC221"; break;
+                case 25: tmp_section = "BTC251"; break;
+                case 26: tmp_section = "BTC711"; break;
+                case 27: tmp_section = "BTC611E_512"; break;
+                case 28: tmp_section = "BTC611E_1024"; break;
+                case 29: tmp_section = "BTC711E_512"; break;
+                case 30: tmp_section = "BTC711E_1024"; break;
+                case 31: tmp_section = "BRC711E_512"; break;
+                case 32: tmp_section = "BRC711E_1024"; break;
+                case 33: tmp_section = "BTF113"; break;
+                case 34: tmp_section = "BWS003"; break;
+                case 35: tmp_section = "BWS004"; break;
+                case 36: tmp_section = "BTC221E_G9208_256W"; break;
+                case 37: tmp_section = "BTU111"; break;
+                case 38: tmp_section = "BTC251E_512_RS232"; break;
+                case 39: tmp_section = "BTC251E_512"; break;
+                case 40: tmp_section = "BTC261E_512_RS232"; break;
+                case 41: tmp_section = "BTC261E_512"; break;
+                case 42: tmp_section = "BTC261E_256"; break;
+                case 43: tmp_section = "BTC261E_1024"; break;
+                case 44: tmp_section = "BRC131"; break;
+                case 45: tmp_section = "BTC262E_256"; break;
+                case 46: tmp_section = "BTC262E_512"; break;
+                case 47: tmp_section = "BTC262E_1024"; break;
+                case 48: tmp_section = "BRC100_OEM"; break;
+                case 49: tmp_section = "BRC641"; break;
+                case 50: tmp_section = "BTC613E_512"; break;
+                case 51: tmp_section = "BTC613E_1024"; break;
+                case 52: tmp_section = "BTC651E_512"; break;
+                case 53: tmp_section = "BTC651E_1024"; break;
+                case 54: tmp_section = "BWS225_256"; break;
+                case 55: tmp_section = "BWS225_512"; break;
+                case 56: tmp_section = "BTC641"; break;
+                case 57: tmp_section = "BWS102"; break;
+                case 58: tmp_section = "BWS003B"; break;
+                case 59: tmp_section = "BWS435"; break;
+                case 60: tmp_section = "BRC642E_2048"; break;
+                case 61: tmp_section = "BTC263E_256"; break;
+                case 62: tmp_section = "BRC113"; break;
+                case 63: tmp_section = "BRC112P"; break;
+                case 64: tmp_section = "BTC261P_512"; break;
+                case 65: tmp_section = "BRC115"; break;
+                case 66: tmp_section = "BTC665"; break;
+                case 67: tmp_section = "BTC675"; break;
+                case 68: tmp_section = "BTC655"; break;
+                case 69: tmp_section = "BTC264P_512"; break;
+                case 70: tmp_section = "BTC264P_1024"; break;
+                case 71: tmp_section = "BRC1k"; break;
+                case 72: tmp_section = "BTC665N"; break;
+                case 73: tmp_section = "BRC115P"; break;
+                case 74: tmp_section = "BTC655N"; break;
+                case 75: tmp_section = "BTC264P_512_RS232"; break;
+                case 76: tmp_section = "BTC261P_256"; break;
+                case 77: tmp_section = "BTC667N"; break;
+                case 78: tmp_section = "BTC675N"; break;
+                case 79: tmp_section = "BTC261P_1024"; break;
 
             }
             return tmp_section;
@@ -681,7 +721,7 @@ namespace BTC655_Demo
             spec_para[Index].DataArray = new ushort[spec_para[Index].pixel_number];
 
             //initialize spectrometer
-            int ret = bwtekTestUSB(spec_para[Index].timing_mode,spec_para[Index].pixel_number,spec_para[Index].input_mode,spec_channel[Index], 0);
+            int ret = bwtekTestUSB(spec_para[Index].timing_mode, spec_para[Index].pixel_number, spec_para[Index].input_mode, spec_channel[Index], 0);
 
             //set LowNoise mode
             if (spec_para[Index].spectrometer_type == (int)TypeID.BTC665N_MODE)
@@ -709,8 +749,8 @@ namespace BTC655_Demo
                 if ((tmp_flag == 2) || (tmp_flag == 3))
                 {
                     this.SetCoolerTemp(0, spec_para[Index].CCDTemp_Set);          //set ccd cooler
-                    if (tmp_flag == 2) 
-                    { 
+                    if (tmp_flag == 2)
+                    {
                         this.SetCoolerTemp(1, spec_para[Index].ExternalTemp_Set); //set external cooler
                     }
                 }
@@ -743,7 +783,7 @@ namespace BTC655_Demo
             if (spec_para[Index].spectrometer_type == (int)TypeID.BTC665_MODE) { tmp_flag = 2; }
             if (spec_para[Index].spectrometer_type == (int)TypeID.BTC675_MODE) { tmp_flag = 2; }
             if (spec_para[Index].spectrometer_type == (int)TypeID.BTC655N_MODE) { tmp_flag = 2; }
-            if (spec_para[Index].spectrometer_type == (int)TypeID.BTC665N_MODE) { tmp_flag = 2; }            
+            if (spec_para[Index].spectrometer_type == (int)TypeID.BTC665N_MODE) { tmp_flag = 2; }
             if (tmp_flag != 0)
             {  //USB3.0 interface Spectrometers
 
@@ -764,11 +804,11 @@ namespace BTC655_Demo
                 {
                     if (spec_para[Index].inttime_unit == 1)          //is ms
                     {
-                        inttime_set = Convert.ToInt32(NewTime * 1000 - spec_para[Index].inttime_base);                        
+                        inttime_set = Convert.ToInt32(NewTime * 1000 - spec_para[Index].inttime_base);
                     }
                     else
                     {                                               //is us
-                        inttime_set = Convert.ToInt32(NewTime - spec_para[Index].inttime_base);                        
+                        inttime_set = Convert.ToInt32(NewTime - spec_para[Index].inttime_base);
                     }
                     ret = bwtekSetTimeUSB(inttime_set, spec_para[Index].channel); //set exposure time
                 }
@@ -877,7 +917,7 @@ namespace BTC655_Demo
             if (spec_para[Index].spectrometer_type == (int)TypeID.BRC115_MODE) { tmp_flag = 1; }
             if (spec_para[Index].spectrometer_type == (int)TypeID.BRC115P_MODE) { tmp_flag = 1; }
             if (spec_para[Index].spectrometer_type == (int)TypeID.BTC665_MODE) { tmp_flag = 2; }
-            if (spec_para[Index].spectrometer_type == (int)TypeID.BTC665N_MODE) { tmp_flag = 2; }            
+            if (spec_para[Index].spectrometer_type == (int)TypeID.BTC665N_MODE) { tmp_flag = 2; }
             if (spec_para[Index].spectrometer_type == (int)TypeID.BTC655_MODE) { tmp_flag = 2; }
             if (spec_para[Index].spectrometer_type == (int)TypeID.BTC655N_MODE) { tmp_flag = 2; }
             if (spec_para[Index].spectrometer_type == (int)TypeID.BTC675_MODE) { tmp_flag = 2; }
@@ -885,13 +925,11 @@ namespace BTC655_Demo
             {
                 panel3.Visible = true;
                 panel4.Visible = true;
-                panel5.Visible = true;
             }
             else
             {
                 panel3.Visible = false;
                 panel4.Visible = false;
-                panel5.Visible = false;
             }
         }
 
@@ -922,7 +960,7 @@ namespace BTC655_Demo
         {
             //chart title font size
             myPane.Title.FontSpec.IsBold = false;
-            myPane.Title.FontSpec.Size = 12;              
+            myPane.Title.FontSpec.Size = 12;
             myPane.YAxis.Title.FontSpec.IsBold = false;
             myPane.XAxis.Title.FontSpec.IsBold = false;
             myPane.XAxis.Title.FontSpec.Size = 12;
@@ -1023,28 +1061,40 @@ namespace BTC655_Demo
         private void textBox_IntTime_TextChanged(object sender, EventArgs e)
         {
             if (device_count <= 0) return;
-            spec_para[current_deviceindex].inttime = double.Parse(textBox_IntTime.Text);
-            int retcode = SetIntegrateTime(current_deviceindex, spec_para[current_deviceindex].inttime);
+            if (double.TryParse(textBox_IntTime.Text, out double newIntTime))
+            {
+                spec_para[current_deviceindex].inttime = newIntTime;
+                int retcode = SetIntegrateTime(current_deviceindex, spec_para[current_deviceindex].inttime);
+            }
         }
 
         private void button_SetIntTime_Click(object sender, EventArgs e)
         {
-            //input exposure time
-            spec_para[current_deviceindex].inttime = double.Parse(textBox_IntTime.Text);
-
-            //set exposure time
-            int retcode = SetIntegrateTime(current_deviceindex, spec_para[current_deviceindex].inttime);
+            if (device_count <= 0) return;
+            if (double.TryParse(textBox_IntTime.Text, out double newIntTime))
+            {
+                spec_para[current_deviceindex].inttime = newIntTime;
+                int retcode = SetIntegrateTime(current_deviceindex, spec_para[current_deviceindex].inttime);
+            }
+            else
+            {
+                MessageBox.Show("Invalid integration time format.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void button_ChartReset_Click(object sender, EventArgs e)
         {
             //reset chart
             this.zgOverlay.ZoomOutAll(this.zgOverlay.GraphPane);
-            this.zgOverlay.Refresh();                  
+            this.zgOverlay.Refresh();
         }
 
         private void button_Exit_Click(object sender, EventArgs e)
         {
+            if (isAutoScanning)
+            {
+                timerAutoScan.Stop(); // Stop auto-scan if running
+            }
             for (int i = 0; i < DEVICE_NUM_MAX; i++)
             {
                 if (spec_initialize[i] == 1) { int ret = bwtekCloseUSB(i); }
@@ -1177,7 +1227,7 @@ namespace BTC655_Demo
             Button_Disable();
 
             //abort the revious data scan thread
-            if (td != null) { td.Abort(); td.Join(); }
+            if (td != null && td.IsAlive) { td.Abort(); td.Join(); } // Check IsAlive
 
             //cretea data scan thread
             td = new Thread(new ThreadStart(DataScan_Process));
@@ -1246,29 +1296,39 @@ namespace BTC655_Demo
         {
             if (spGraph == null) { return; }
 
-            //clear the curve list
+            // Clear the curve list
             spGraph.GraphPane.CurveList.Clear();
             spGraph.GraphPane.GraphObjList.Clear();
 
-            //create point list
+            // Create point list
             PointPairList list = new PointPairList();
             double X = 0, Y = 0, Max_Y = 0;
 
             for (int i = 0; i < spec_para[index].pixel_number; i++)
             {
                 if (Max_Y < spec_para[index].DataArray[i]) { Max_Y = spec_para[index].DataArray[i]; }
-                X = i;                              //X value of point
-                Y = spec_para[index].DataArray[i];  //Y value of point
-                list.Add(X, Y);                     //Add this point 
+                X = i; // X value of point
+
+                // Subtract the dark spectrum if available
+                if (isDarkSpectrumCaptured && darkSpectrum != null && i < darkSpectrum.Length) // Added length check
+                {
+                    Y = Math.Max(0, spec_para[index].DataArray[i] - darkSpectrum[i]); // Ensure no negative values
+                }
+                else
+                {
+                    Y = spec_para[index].DataArray[i];
+                }
+
+                list.Add(X, Y); // Add this point
             }
 
-            //cretae curve with point list
-            LineItem myCurve = spGraph.GraphPane.AddCurve("Spectrum #1", list, Color.Red, SymbolType.None); //Color.Red
+            // Create curve with point list
+            LineItem myCurve = spGraph.GraphPane.AddCurve("Spectrum #1", list, Color.Red, SymbolType.None); // Color.Red
 
-            myCurve.Line.Width = 1;     //curve line width
+            myCurve.Line.Width = 1; // Curve line width
             myCurve.Line.IsAntiAlias = false;
 
-            //refresh chart
+            // Refresh chart
             spGraph.Invalidate();
         }
 
@@ -1277,7 +1337,7 @@ namespace BTC655_Demo
             if (device_count <= 0) return;
 
             //set stop flag
-            spec_para[current_deviceindex].stop_flag = 1;  
+            spec_para[current_deviceindex].stop_flag = 1;
 
             //Enabled button
             Button_Enable();
@@ -1323,13 +1383,13 @@ namespace BTC655_Demo
             byte[] data = new byte[100];
             int addr = 0;
             int nNum = 100;
-            listBox1.Items.Clear();
+            // listBox1.Items.Clear(); // listBox1 no longer exists
 
             //set desired write data with 0..99 value
             for (int i = 0; i < nNum; i++)
             {
                 data[i] = (byte)i;
-                listBox1.Items.Add(data[i].ToString());
+                // listBox1.Items.Add(data[i].ToString()); // listBox1 no longer exists
             }
 
             //write data to customer EEPROM
@@ -1350,10 +1410,10 @@ namespace BTC655_Demo
             int ret = bwtekReadBlockUSB(addr, data, nNum, spec_para[current_deviceindex].channel);
 
             //display data
-            listBox1.Items.Clear();
+            // listBox1.Items.Clear(); // listBox1 no longer exists
             for (int i = 0; i < nNum; i++)
             {
-                listBox1.Items.Add(data[i].ToString());
+                // listBox1.Items.Add(data[i].ToString()); // listBox1 no longer exists
             }
         }
 
@@ -1383,6 +1443,88 @@ namespace BTC655_Demo
             textBox_USB3Temp1.Text = dTemperature.ToString("0.00");
         }
 
+        public bool SaveSpectrumToFile(string filePath = null, bool silentMode = false)
+        {
+            if (current_deviceindex < 0 || device_count <= 0)
+            {
+                if (!silentMode) MessageBox.Show("No spectrometer selected or active.", "Save Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+
+            if (spec_para[current_deviceindex].DataArray == null || spec_para[current_deviceindex].DataArray.Length == 0)
+            {
+                if (!silentMode) MessageBox.Show("No spectrum data to save. Please acquire a spectrum first.", "Save Error", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return false;
+            }
+
+            if (spec_para[current_deviceindex].wavelength == null || spec_para[current_deviceindex].wavelength.Length < spec_para[current_deviceindex].pixel_number)
+            {
+                if (!silentMode) MessageBox.Show("Wavelength calibration data is missing or incomplete. Cannot save with wavelength.", "Save Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+
+            string actualFilePath = filePath;
+            if (string.IsNullOrEmpty(actualFilePath))
+            {
+                if (silentMode)
+                {
+                    // In silent mode, if no path is given, we can't prompt.
+                    // Decide on behavior: error, or generate a default path.
+                    // For now, let's assume an error or log it.
+                    // Console.WriteLine("Error: FilePath not provided for silent save.");
+                    return false;
+                }
+                using (SaveFileDialog saveFileDialog = new SaveFileDialog())
+                {
+                    saveFileDialog.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
+                    saveFileDialog.Title = "Save Spectrum Data";
+                    saveFileDialog.FileName = "spectrum_data.txt";
+
+                    if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        actualFilePath = saveFileDialog.FileName;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            try
+            {
+                string directory = Path.GetDirectoryName(actualFilePath);
+                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+
+                using (StreamWriter sw = new StreamWriter(actualFilePath))
+                {
+                    sw.WriteLine("Wavelength\tIntensity");
+                    int pointsToSave = spec_para[current_deviceindex].pixel_number;
+                    for (int i = 0; i < pointsToSave; i++)
+                    {
+                        double intensity = spec_para[current_deviceindex].DataArray[i];
+                        if (isDarkSpectrumCaptured && darkSpectrum != null && i < darkSpectrum.Length)
+                        {
+                            intensity = Math.Max(0, spec_para[current_deviceindex].DataArray[i] - darkSpectrum[i]);
+                        }
+                        sw.WriteLine(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0:F3}\t{1}",
+                            spec_para[current_deviceindex].wavelength[i],
+                            intensity));
+                    }
+                }
+                if (!silentMode) MessageBox.Show($"Spectrum saved successfully to:\n{actualFilePath}", "Save Successful", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                if (!silentMode) MessageBox.Show($"Error saving spectrum: {ex.Message}", "Save Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                // else Console.WriteLine($"Error saving spectrum silently: {ex.Message}");
+                return false;
+            }
+        }
         private void numericUpDown_CCDTemp_ValueChanged(object sender, EventArgs e)
         {
             //set CCD Cooler temperature between -40°C..+10°C
@@ -1452,5 +1594,222 @@ namespace BTC655_Demo
             int ret = bwtekSetAnalogOut(DAChannel, DA_Set, spec_para[current_deviceindex].channel);
         }
 
+        private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            // Content related to listBox1, which no longer exists.
+        }
+
+        private void panel2_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void button_SaveGraph_Click(object sender, EventArgs e)
+        {
+            SaveSpectrumToFile(); // Calls the overloaded method without silentMode
+        }
+
+        private void button_CaptureDarkSpectrum_Click(object sender, EventArgs e)
+        {
+            CaptureDarkSpectrum();
+        }
+
+        private void CaptureDarkSpectrum()
+        {
+            if (device_count <= 0)
+            {
+                MessageBox.Show("No spectrometer connected.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Close the shutter
+            bwtekSetTTLOut(4, 0, spec_para[current_deviceindex].shutter_inverse, spec_para[current_deviceindex].channel);
+            Shutter.Checked = false;
+
+            // Perform a single scan
+            spec_para[current_deviceindex].frame_num = 1;
+            spec_para[current_deviceindex].scan_mode = 0; // Normal mode
+            spec_para[current_deviceindex].scan_flag = 1; // Single scan
+            spec_para[current_deviceindex].stop_flag = 0; // Ensure no stop flag
+            spec_para[current_deviceindex].trigger_mode = ExtTrigger.Checked ? 1 : 0; // External trigger if checked
+
+            // Allocate memory for the dark spectrum
+            darkSpectrum = new ushort[spec_para[current_deviceindex].pixel_number];
+
+            // Start the scan
+            int ret = bwtekDataReadUSB(spec_para[current_deviceindex].trigger_mode, darkSpectrum, spec_para[current_deviceindex].channel);
+
+            if (ret == 0) // Check if the scan was successful
+            {
+                isDarkSpectrumCaptured = true;
+                MessageBox.Show("Dark spectrum captured successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            else
+            {
+                MessageBox.Show("Failed to capture dark spectrum.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
+            // Reopen the shutter
+            bwtekSetTTLOut(4, 1, spec_para[current_deviceindex].shutter_inverse, spec_para[current_deviceindex].channel);
+            Shutter.Checked = true;
+        }
+
+        // --- Auto-Scan Methods ---
+        private void UpdateAutoScanStatus(string message)
+        {
+            if (labelAutoScanStatus.InvokeRequired)
+            {
+                labelAutoScanStatus.Invoke(new Action(() => labelAutoScanStatus.Text = "Status: " + message));
+            }
+            else
+            {
+                labelAutoScanStatus.Text = "Status: " + message;
+            }
+        }
+
+        private void buttonStartAutoScan_Click(object sender, EventArgs e)
+        {
+            if (device_count <= 0)
+            {
+                MessageBox.Show("No spectrometer connected.", "Auto-Scan Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            if (!double.TryParse(textBoxAutoScanInterval.Text, out double intervalValue) || intervalValue <= 0)
+            {
+                MessageBox.Show("Please enter a valid positive number for the interval.", "Auto-Scan Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            long multiplier = 1;
+            string unit = comboBoxAutoScanUnit.SelectedItem.ToString();
+            if (unit == "Minutes")
+            {
+                multiplier = 60 * 1000; // milliseconds
+            }
+            else if (unit == "Hours")
+            {
+                multiplier = 60 * 60 * 1000; // milliseconds
+            }
+
+            autoScanIntervalMilliseconds = (int)(intervalValue * multiplier);
+            if (autoScanIntervalMilliseconds <= 0) // Check for overflow or too small value
+            {
+                MessageBox.Show("The calculated interval is too large or too small. Please adjust.", "Auto-Scan Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+
+            timerAutoScan.Interval = autoScanIntervalMilliseconds;
+            isAutoScanning = true;
+            timerAutoScan.Start();
+
+            buttonStartAutoScan.Enabled = false;
+            buttonStopAutoScan.Enabled = true;
+            textBoxAutoScanInterval.Enabled = false;
+            comboBoxAutoScanUnit.Enabled = false;
+            buttonSetAutoScanFolder.Enabled = false;
+            UpdateAutoScanStatus($"Started. Next scan in approx. {intervalValue} {unit}.");
+        }
+
+        private void buttonStopAutoScan_Click(object sender, EventArgs e)
+        {
+            isAutoScanning = false;
+            timerAutoScan.Stop();
+
+            buttonStartAutoScan.Enabled = true;
+            buttonStopAutoScan.Enabled = false;
+            textBoxAutoScanInterval.Enabled = true;
+            comboBoxAutoScanUnit.Enabled = true;
+            buttonSetAutoScanFolder.Enabled = true;
+            UpdateAutoScanStatus("Stopped. Save folder: " + autoScanSaveFolder);
+        }
+
+        private void buttonSetAutoScanFolder_Click(object sender, EventArgs e)
+        {
+            folderBrowserDialogAutoScan.SelectedPath = autoScanSaveFolder;
+            if (folderBrowserDialogAutoScan.ShowDialog() == DialogResult.OK)
+            {
+                autoScanSaveFolder = folderBrowserDialogAutoScan.SelectedPath;
+                UpdateAutoScanStatus("Save folder set to: " + autoScanSaveFolder);
+            }
+        }
+
+        private void timerAutoScan_Tick(object sender, EventArgs e)
+        {
+            if (!isAutoScanning || current_deviceindex < 0 || device_count <= 0)
+            {
+                return; // Should not happen if logic is correct, but good for safety
+            }
+
+            // Prevent issues if a manual scan is running via the 'td' thread
+            if (td != null && td.IsAlive)
+            {
+                UpdateAutoScanStatus("Manual scan in progress. Auto-scan tick skipped.");
+                return;
+            }
+
+            timerAutoScan.Stop(); // Stop timer to prevent re-entrancy during scan/save
+
+            try
+            {
+                UpdateAutoScanStatus($"Acquiring spectrum at {DateTime.Now}...");
+                Application.DoEvents();
+
+                if (spec_para[current_deviceindex].DataArray == null ||
+                    spec_para[current_deviceindex].DataArray.Length != spec_para[current_deviceindex].pixel_number)
+                {
+                    spec_para[current_deviceindex].DataArray = new ushort[spec_para[current_deviceindex].pixel_number];
+                }
+
+                // Perform data acquisition (Normal Mode, Internal Trigger for simplicity)
+                int acquisitionResult = bwtekDataReadUSB(0, spec_para[current_deviceindex].DataArray, spec_para[current_deviceindex].channel);
+
+                if (acquisitionResult == 0) // Success
+                {
+                    string deviceCode = spec_para[current_deviceindex].cCode.Trim().Replace(" ", "_");
+                    string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                    string fileName = $"AutoScan_{deviceCode}_{timestamp}.txt";
+                    string filePath = Path.Combine(autoScanSaveFolder, fileName);
+
+                    bool saved = SaveSpectrumToFile(filePath, true); // silentMode = true
+
+                    if (saved)
+                    {
+                        UpdateAutoScanStatus($"Spectrum saved to {fileName}.");
+                    }
+                    else
+                    {
+                        UpdateAutoScanStatus($"Failed to save spectrum to {fileName}.");
+                    }
+                }
+                else
+                {
+                    UpdateAutoScanStatus($"Failed to acquire spectrum. Error: {acquisitionResult}");
+                }
+            }
+            catch (Exception ex)
+            {
+                UpdateAutoScanStatus($"Error during auto-scan: {ex.Message}");
+            }
+            finally
+            {
+                if (isAutoScanning) // Only restart if still in auto-scan mode
+                {
+                    timerAutoScan.Start(); // Restart timer for the next interval
+                    double intervalValue = 0;
+                    string unit = "";
+                    if (comboBoxAutoScanUnit.SelectedItem != null && double.TryParse(textBoxAutoScanInterval.Text, out intervalValue))
+                    {
+                        unit = comboBoxAutoScanUnit.SelectedItem.ToString();
+                        UpdateAutoScanStatus($"Next scan in approx. {intervalValue} {unit}.");
+                    }
+                    else
+                    {
+                        UpdateAutoScanStatus($"Next scan in {autoScanIntervalMilliseconds / 1000} seconds.");
+                    }
+
+                }
+            }
+        }
     }
 }

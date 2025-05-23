@@ -42,7 +42,6 @@
             this.textBox_Ave = new System.Windows.Forms.TextBox();
             this.button_SingleScan2 = new System.Windows.Forms.Button();
             this.button_MuitlScan2 = new System.Windows.Forms.Button();
-            this.label_totaltime = new System.Windows.Forms.Label();
             this.ExtTrigger = new System.Windows.Forms.CheckBox();
             this.panel1 = new System.Windows.Forms.Panel();
             this.label_Scancount = new System.Windows.Forms.Label();
@@ -55,6 +54,8 @@
             this.label6 = new System.Windows.Forms.Label();
             this.button_Exit = new System.Windows.Forms.Button();
             this.button_ChartReset = new System.Windows.Forms.Button();
+            this.button_CaptureDarkSpectrum = new System.Windows.Forms.Button();
+            this.button_SaveGraph = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
             this.textBox_FrameNum = new System.Windows.Forms.TextBox();
             this.button_MuitlScan0 = new System.Windows.Forms.Button();
@@ -65,13 +66,14 @@
             this.panel50 = new System.Windows.Forms.Panel();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.panel5 = new System.Windows.Forms.Panel();
-            this.listBox1 = new System.Windows.Forms.ListBox();
-            this.label7 = new System.Windows.Forms.Label();
-            this.button_ReadBlock = new System.Windows.Forms.Button();
-            this.button_WriteBlock = new System.Windows.Forms.Button();
-            this.button_EraseBlock = new System.Windows.Forms.Button();
-            this.label_Speed = new System.Windows.Forms.Label();
+            this.groupBoxAutoScan = new System.Windows.Forms.GroupBox();
+            this.buttonSetAutoScanFolder = new System.Windows.Forms.Button();
+            this.labelAutoScanStatus = new System.Windows.Forms.Label();
+            this.buttonStopAutoScan = new System.Windows.Forms.Button();
+            this.buttonStartAutoScan = new System.Windows.Forms.Button();
+            this.comboBoxAutoScanUnit = new System.Windows.Forms.ComboBox();
+            this.textBoxAutoScanInterval = new System.Windows.Forms.TextBox();
+            this.labelAutoScanInterval = new System.Windows.Forms.Label();
             this.panel2 = new System.Windows.Forms.Panel();
             this.Shutter = new System.Windows.Forms.CheckBox();
             this.button_Stop0 = new System.Windows.Forms.Button();
@@ -100,6 +102,8 @@
             this.button_USB3GetTemp1 = new System.Windows.Forms.Button();
             this.panel6 = new System.Windows.Forms.Panel();
             this.zgOverlay = new SpecGraph.SpecGraphControl();
+            this.timerAutoScan = new System.Windows.Forms.Timer(this.components);
+            this.folderBrowserDialogAutoScan = new System.Windows.Forms.FolderBrowserDialog();
             this.panel4.SuspendLayout();
             this.panel1.SuspendLayout();
             this.panel40.SuspendLayout();
@@ -108,7 +112,7 @@
             this.panel50.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
-            this.panel5.SuspendLayout();
+            this.groupBoxAutoScan.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -165,14 +169,14 @@
             this.panel4.Location = new System.Drawing.Point(439, 4);
             this.panel4.Name = "panel4";
             this.panel4.Size = new System.Drawing.Size(137, 162);
-            this.panel4.TabIndex = 8;
+            this.panel4.TabIndex = 3;
             // 
             // button_Stop2
             // 
             this.button_Stop2.Location = new System.Drawing.Point(91, 104);
             this.button_Stop2.Name = "button_Stop2";
             this.button_Stop2.Size = new System.Drawing.Size(39, 50);
-            this.button_Stop2.TabIndex = 24;
+            this.button_Stop2.TabIndex = 7;
             this.button_Stop2.Text = "Stop";
             this.button_Stop2.UseVisualStyleBackColor = true;
             this.button_Stop2.Click += new System.EventHandler(this.button_Stop2_Click);
@@ -183,7 +187,7 @@
             this.label5.Location = new System.Drawing.Point(5, 36);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(72, 13);
-            this.label5.TabIndex = 22;
+            this.label5.TabIndex = 1;
             this.label5.Text = "Average Num";
             // 
             // label1
@@ -193,7 +197,7 @@
             this.label1.Location = new System.Drawing.Point(26, 9);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(74, 13);
-            this.label1.TabIndex = 21;
+            this.label1.TabIndex = 0;
             this.label1.Text = "Smart Mode";
             // 
             // checkBox_DarkCompensate
@@ -202,7 +206,7 @@
             this.checkBox_DarkCompensate.Location = new System.Drawing.Point(8, 59);
             this.checkBox_DarkCompensate.Name = "checkBox_DarkCompensate";
             this.checkBox_DarkCompensate.Size = new System.Drawing.Size(108, 17);
-            this.checkBox_DarkCompensate.TabIndex = 20;
+            this.checkBox_DarkCompensate.TabIndex = 3;
             this.checkBox_DarkCompensate.Text = "DarkCompensate";
             this.checkBox_DarkCompensate.UseVisualStyleBackColor = true;
             // 
@@ -212,7 +216,7 @@
             this.checkBox_Smooth.Location = new System.Drawing.Point(8, 80);
             this.checkBox_Smooth.Name = "checkBox_Smooth";
             this.checkBox_Smooth.Size = new System.Drawing.Size(62, 17);
-            this.checkBox_Smooth.TabIndex = 19;
+            this.checkBox_Smooth.TabIndex = 4;
             this.checkBox_Smooth.Text = "Smooth";
             this.checkBox_Smooth.UseVisualStyleBackColor = true;
             // 
@@ -221,7 +225,7 @@
             this.textBox_Ave.Location = new System.Drawing.Point(83, 33);
             this.textBox_Ave.Name = "textBox_Ave";
             this.textBox_Ave.Size = new System.Drawing.Size(40, 20);
-            this.textBox_Ave.TabIndex = 16;
+            this.textBox_Ave.TabIndex = 2;
             this.textBox_Ave.Text = "1";
             // 
             // button_SingleScan2
@@ -229,7 +233,7 @@
             this.button_SingleScan2.Location = new System.Drawing.Point(10, 104);
             this.button_SingleScan2.Name = "button_SingleScan2";
             this.button_SingleScan2.Size = new System.Drawing.Size(75, 23);
-            this.button_SingleScan2.TabIndex = 14;
+            this.button_SingleScan2.TabIndex = 5;
             this.button_SingleScan2.Text = "Single Scan";
             this.button_SingleScan2.UseVisualStyleBackColor = true;
             this.button_SingleScan2.Click += new System.EventHandler(this.button_SingleScan2_Click);
@@ -239,18 +243,10 @@
             this.button_MuitlScan2.Location = new System.Drawing.Point(10, 132);
             this.button_MuitlScan2.Name = "button_MuitlScan2";
             this.button_MuitlScan2.Size = new System.Drawing.Size(75, 23);
-            this.button_MuitlScan2.TabIndex = 15;
+            this.button_MuitlScan2.TabIndex = 6;
             this.button_MuitlScan2.Text = "Multi Scan";
             this.button_MuitlScan2.UseVisualStyleBackColor = true;
             this.button_MuitlScan2.Click += new System.EventHandler(this.button_MuitlScan2_Click);
-            // 
-            // label_totaltime
-            // 
-            this.label_totaltime.AutoSize = true;
-            this.label_totaltime.Location = new System.Drawing.Point(88, 55);
-            this.label_totaltime.Name = "label_totaltime";
-            this.label_totaltime.Size = new System.Drawing.Size(0, 13);
-            this.label_totaltime.TabIndex = 18;
             // 
             // ExtTrigger
             // 
@@ -258,7 +254,7 @@
             this.ExtTrigger.Location = new System.Drawing.Point(7, 79);
             this.ExtTrigger.Name = "ExtTrigger";
             this.ExtTrigger.Size = new System.Drawing.Size(77, 17);
-            this.ExtTrigger.TabIndex = 17;
+            this.ExtTrigger.TabIndex = 2;
             this.ExtTrigger.Text = "Ext Trigger";
             this.ExtTrigger.UseVisualStyleBackColor = true;
             // 
@@ -278,10 +274,11 @@
             this.panel1.Controls.Add(this.button_ChartReset);
             this.panel1.Controls.Add(this.button_SetIntTime);
             this.panel1.Controls.Add(this.textBox_IntTime);
+            this.panel1.Controls.Add(this.button_CaptureDarkSpectrum);
             this.panel1.Location = new System.Drawing.Point(4, 4);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(166, 162);
-            this.panel1.TabIndex = 9;
+            this.panel1.Size = new System.Drawing.Size(166, 190);
+            this.panel1.TabIndex = 0;
             // 
             // label_Scancount
             // 
@@ -289,7 +286,7 @@
             this.label_Scancount.Location = new System.Drawing.Point(79, 144);
             this.label_Scancount.Name = "label_Scancount";
             this.label_Scancount.Size = new System.Drawing.Size(13, 13);
-            this.label_Scancount.TabIndex = 31;
+            this.label_Scancount.TabIndex = 10;
             this.label_Scancount.Text = "0";
             // 
             // label9
@@ -298,7 +295,7 @@
             this.label9.Location = new System.Drawing.Point(6, 143);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(71, 13);
-            this.label9.TabIndex = 30;
+            this.label9.TabIndex = 9;
             this.label9.Text = "Scan Counts:";
             // 
             // panel7
@@ -308,7 +305,7 @@
             this.panel7.Location = new System.Drawing.Point(144, 137);
             this.panel7.Name = "panel7";
             this.panel7.Size = new System.Drawing.Size(15, 19);
-            this.panel7.TabIndex = 29;
+            this.panel7.TabIndex = 8;
             // 
             // comboBox1_Channel
             // 
@@ -316,7 +313,7 @@
             this.comboBox1_Channel.Location = new System.Drawing.Point(117, 9);
             this.comboBox1_Channel.Name = "comboBox1_Channel";
             this.comboBox1_Channel.Size = new System.Drawing.Size(44, 21);
-            this.comboBox1_Channel.TabIndex = 26;
+            this.comboBox1_Channel.TabIndex = 1;
             this.comboBox1_Channel.Visible = false;
             // 
             // label13
@@ -325,7 +322,7 @@
             this.label13.Location = new System.Drawing.Point(3, 36);
             this.label13.Name = "label13";
             this.label13.Size = new System.Drawing.Size(103, 13);
-            this.label13.TabIndex = 25;
+            this.label13.TabIndex = 2;
             this.label13.Text = "Select Spectrometer";
             // 
             // comboBox_Spectrometer
@@ -334,7 +331,7 @@
             this.comboBox_Spectrometer.Location = new System.Drawing.Point(6, 57);
             this.comboBox_Spectrometer.Name = "comboBox_Spectrometer";
             this.comboBox_Spectrometer.Size = new System.Drawing.Size(153, 21);
-            this.comboBox_Spectrometer.TabIndex = 24;
+            this.comboBox_Spectrometer.TabIndex = 3;
             this.comboBox_Spectrometer.SelectedIndexChanged += new System.EventHandler(this.comboBox_Spectrometer_SelectedIndexChanged);
             // 
             // label8
@@ -344,7 +341,7 @@
             this.label8.Location = new System.Drawing.Point(62, 9);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(48, 13);
-            this.label8.TabIndex = 23;
+            this.label8.TabIndex = 0;
             this.label8.Text = "Startup";
             // 
             // label6
@@ -353,7 +350,7 @@
             this.label6.Location = new System.Drawing.Point(136, 89);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(26, 13);
-            this.label6.TabIndex = 19;
+            this.label6.TabIndex = 6;
             this.label6.Text = "(ms)";
             // 
             // button_Exit
@@ -361,7 +358,7 @@
             this.button_Exit.Location = new System.Drawing.Point(79, 111);
             this.button_Exit.Name = "button_Exit";
             this.button_Exit.Size = new System.Drawing.Size(52, 23);
-            this.button_Exit.TabIndex = 28;
+            this.button_Exit.TabIndex = 8;
             this.button_Exit.Text = "Exit";
             this.button_Exit.UseVisualStyleBackColor = true;
             this.button_Exit.Click += new System.EventHandler(this.button_Exit_Click);
@@ -371,10 +368,30 @@
             this.button_ChartReset.Location = new System.Drawing.Point(3, 111);
             this.button_ChartReset.Name = "button_ChartReset";
             this.button_ChartReset.Size = new System.Drawing.Size(75, 23);
-            this.button_ChartReset.TabIndex = 15;
+            this.button_ChartReset.TabIndex = 7;
             this.button_ChartReset.Text = "Chart Reset";
             this.button_ChartReset.UseVisualStyleBackColor = true;
             this.button_ChartReset.Click += new System.EventHandler(this.button_ChartReset_Click);
+            // 
+            // button_CaptureDarkSpectrum
+            // 
+            this.button_CaptureDarkSpectrum.Location = new System.Drawing.Point(3, 160);
+            this.button_CaptureDarkSpectrum.Name = "button_CaptureDarkSpectrum";
+            this.button_CaptureDarkSpectrum.Size = new System.Drawing.Size(150, 23);
+            this.button_CaptureDarkSpectrum.TabIndex = 11;
+            this.button_CaptureDarkSpectrum.Text = "Capture Dark Spectrum";
+            this.button_CaptureDarkSpectrum.UseVisualStyleBackColor = true;
+            this.button_CaptureDarkSpectrum.Click += new System.EventHandler(this.button_CaptureDarkSpectrum_Click);
+            // 
+            // button_SaveGraph
+            // 
+            this.button_SaveGraph.Location = new System.Drawing.Point(582, 10);
+            this.button_SaveGraph.Name = "button_SaveGraph";
+            this.button_SaveGraph.Size = new System.Drawing.Size(150, 23);
+            this.button_SaveGraph.TabIndex = 4;
+            this.button_SaveGraph.Text = "Save Spectrum";
+            this.button_SaveGraph.UseVisualStyleBackColor = true;
+            this.button_SaveGraph.Click += new System.EventHandler(this.button_SaveGraph_Click);
             // 
             // label2
             // 
@@ -382,7 +399,7 @@
             this.label2.Location = new System.Drawing.Point(10, 52);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(61, 13);
-            this.label2.TabIndex = 18;
+            this.label2.TabIndex = 1;
             this.label2.Text = "Frame Num";
             // 
             // textBox_FrameNum
@@ -390,7 +407,7 @@
             this.textBox_FrameNum.Location = new System.Drawing.Point(73, 47);
             this.textBox_FrameNum.Name = "textBox_FrameNum";
             this.textBox_FrameNum.Size = new System.Drawing.Size(40, 20);
-            this.textBox_FrameNum.TabIndex = 17;
+            this.textBox_FrameNum.TabIndex = 2;
             this.textBox_FrameNum.Text = "100";
             // 
             // button_MuitlScan0
@@ -398,7 +415,7 @@
             this.button_MuitlScan0.Location = new System.Drawing.Point(7, 132);
             this.button_MuitlScan0.Name = "button_MuitlScan0";
             this.button_MuitlScan0.Size = new System.Drawing.Size(75, 23);
-            this.button_MuitlScan0.TabIndex = 15;
+            this.button_MuitlScan0.TabIndex = 4;
             this.button_MuitlScan0.Text = "Multi Scan";
             this.button_MuitlScan0.UseVisualStyleBackColor = true;
             this.button_MuitlScan0.Click += new System.EventHandler(this.button_MuitlScan0_Click);
@@ -409,20 +426,20 @@
             this.DeviceTreeView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.DeviceTreeView.Location = new System.Drawing.Point(0, 0);
             this.DeviceTreeView.Name = "DeviceTreeView";
-            this.DeviceTreeView.Size = new System.Drawing.Size(214, 570);
-            this.DeviceTreeView.TabIndex = 14;
+            this.DeviceTreeView.Size = new System.Drawing.Size(214, 470);
+            this.DeviceTreeView.TabIndex = 0;
             this.DeviceTreeView.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.DeviceTreeView_AfterSelect);
             // 
             // panel40
             // 
             this.panel40.BackColor = System.Drawing.SystemColors.InactiveCaptionText;
-            this.panel40.Controls.Add(this.panel9);
             this.panel40.Controls.Add(this.DeviceTreeView);
+            this.panel40.Controls.Add(this.panel9);
             this.panel40.Dock = System.Windows.Forms.DockStyle.Left;
             this.panel40.Location = new System.Drawing.Point(0, 0);
             this.panel40.Name = "panel40";
             this.panel40.Size = new System.Drawing.Size(214, 570);
-            this.panel40.TabIndex = 15;
+            this.panel40.TabIndex = 0;
             // 
             // panel9
             // 
@@ -432,7 +449,7 @@
             this.panel9.Location = new System.Drawing.Point(0, 470);
             this.panel9.Name = "panel9";
             this.panel9.Size = new System.Drawing.Size(214, 100);
-            this.panel9.TabIndex = 15;
+            this.panel9.TabIndex = 1;
             // 
             // pictureBox1
             // 
@@ -442,7 +459,7 @@
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(152, 39);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
-            this.pictureBox1.TabIndex = 14;
+            this.pictureBox1.TabIndex = 0;
             this.pictureBox1.TabStop = false;
             // 
             // panel50
@@ -453,104 +470,116 @@
             this.panel50.Location = new System.Drawing.Point(214, 0);
             this.panel50.Name = "panel50";
             this.panel50.Size = new System.Drawing.Size(789, 195);
-            this.panel50.TabIndex = 16;
+            this.panel50.TabIndex = 1;
             // 
             // tabControl1
             // 
             this.tabControl1.Controls.Add(this.tabPage1);
             this.tabControl1.Controls.Add(this.tabPage2);
+            this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControl1.Location = new System.Drawing.Point(0, 0);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(790, 195);
-            this.tabControl1.TabIndex = 20;
+            this.tabControl1.Size = new System.Drawing.Size(789, 195);
+            this.tabControl1.TabIndex = 0;
             // 
             // tabPage1
             // 
+            this.tabPage1.Controls.Add(this.groupBoxAutoScan);
             this.tabPage1.Controls.Add(this.panel1);
-            this.tabPage1.Controls.Add(this.panel5);
             this.tabPage1.Controls.Add(this.panel2);
             this.tabPage1.Controls.Add(this.panel4);
             this.tabPage1.Controls.Add(this.panel3);
+            this.tabPage1.Controls.Add(this.button_SaveGraph);
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(782, 169);
+            this.tabPage1.Size = new System.Drawing.Size(781, 169);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Scan";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
-            // panel5
+            // groupBoxAutoScan
             // 
-            this.panel5.BackColor = System.Drawing.SystemColors.MenuBar;
-            this.panel5.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel5.Controls.Add(this.listBox1);
-            this.panel5.Controls.Add(this.label7);
-            this.panel5.Controls.Add(this.button_ReadBlock);
-            this.panel5.Controls.Add(this.button_WriteBlock);
-            this.panel5.Controls.Add(this.button_EraseBlock);
-            this.panel5.Controls.Add(this.label_Speed);
-            this.panel5.Controls.Add(this.label_totaltime);
-            this.panel5.Location = new System.Drawing.Point(577, 4);
-            this.panel5.Name = "panel5";
-            this.panel5.Size = new System.Drawing.Size(203, 162);
-            this.panel5.TabIndex = 19;
+            this.groupBoxAutoScan.Controls.Add(this.buttonSetAutoScanFolder);
+            this.groupBoxAutoScan.Controls.Add(this.labelAutoScanStatus);
+            this.groupBoxAutoScan.Controls.Add(this.buttonStopAutoScan);
+            this.groupBoxAutoScan.Controls.Add(this.buttonStartAutoScan);
+            this.groupBoxAutoScan.Controls.Add(this.comboBoxAutoScanUnit);
+            this.groupBoxAutoScan.Controls.Add(this.textBoxAutoScanInterval);
+            this.groupBoxAutoScan.Controls.Add(this.labelAutoScanInterval);
+            this.groupBoxAutoScan.Location = new System.Drawing.Point(582, 40);
+            this.groupBoxAutoScan.Name = "groupBoxAutoScan";
+            this.groupBoxAutoScan.Size = new System.Drawing.Size(193, 125);
+            this.groupBoxAutoScan.TabIndex = 5;
+            this.groupBoxAutoScan.TabStop = false;
+            this.groupBoxAutoScan.Text = "Timed Auto-Scan";
             // 
-            // listBox1
+            // buttonSetAutoScanFolder
             // 
-            this.listBox1.FormattingEnabled = true;
-            this.listBox1.Location = new System.Drawing.Point(84, 25);
-            this.listBox1.Name = "listBox1";
-            this.listBox1.Size = new System.Drawing.Size(110, 121);
-            this.listBox1.TabIndex = 33;
+            this.buttonSetAutoScanFolder.Location = new System.Drawing.Point(9, 70);
+            this.buttonSetAutoScanFolder.Name = "buttonSetAutoScanFolder";
+            this.buttonSetAutoScanFolder.Size = new System.Drawing.Size(80, 23);
+            this.buttonSetAutoScanFolder.TabIndex = 4;
+            this.buttonSetAutoScanFolder.Text = "Set Folder";
+            this.buttonSetAutoScanFolder.UseVisualStyleBackColor = true;
+            this.buttonSetAutoScanFolder.Click += new System.EventHandler(this.buttonSetAutoScanFolder_Click);
             // 
-            // label7
+            // labelAutoScanStatus
             // 
-            this.label7.AutoSize = true;
-            this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label7.Location = new System.Drawing.Point(14, 9);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(95, 13);
-            this.label7.TabIndex = 32;
-            this.label7.Text = "Customer Block";
+            this.labelAutoScanStatus.AutoSize = true;
+            this.labelAutoScanStatus.Location = new System.Drawing.Point(6, 101);
+            this.labelAutoScanStatus.Name = "labelAutoScanStatus";
+            this.labelAutoScanStatus.Size = new System.Drawing.Size(43, 13);
+            this.labelAutoScanStatus.TabIndex = 6;
+            this.labelAutoScanStatus.Text = "Status: ";
             // 
-            // button_ReadBlock
+            // buttonStopAutoScan
             // 
-            this.button_ReadBlock.Location = new System.Drawing.Point(6, 83);
-            this.button_ReadBlock.Name = "button_ReadBlock";
-            this.button_ReadBlock.Size = new System.Drawing.Size(75, 23);
-            this.button_ReadBlock.TabIndex = 31;
-            this.button_ReadBlock.Text = "Read Block";
-            this.button_ReadBlock.UseVisualStyleBackColor = true;
-            this.button_ReadBlock.Click += new System.EventHandler(this.button_ReadBlock_Click);
+            this.buttonStopAutoScan.Enabled = false;
+            this.buttonStopAutoScan.Location = new System.Drawing.Point(98, 44);
+            this.buttonStopAutoScan.Name = "buttonStopAutoScan";
+            this.buttonStopAutoScan.Size = new System.Drawing.Size(89, 23);
+            this.buttonStopAutoScan.TabIndex = 3;
+            this.buttonStopAutoScan.Text = "Stop Scans";
+            this.buttonStopAutoScan.UseVisualStyleBackColor = true;
+            this.buttonStopAutoScan.Click += new System.EventHandler(this.buttonStopAutoScan_Click);
             // 
-            // button_WriteBlock
+            // buttonStartAutoScan
             // 
-            this.button_WriteBlock.Location = new System.Drawing.Point(6, 56);
-            this.button_WriteBlock.Name = "button_WriteBlock";
-            this.button_WriteBlock.Size = new System.Drawing.Size(75, 23);
-            this.button_WriteBlock.TabIndex = 30;
-            this.button_WriteBlock.Text = "Write Block";
-            this.button_WriteBlock.UseVisualStyleBackColor = true;
-            this.button_WriteBlock.Click += new System.EventHandler(this.button_WriteBlock_Click);
+            this.buttonStartAutoScan.Location = new System.Drawing.Point(9, 44);
+            this.buttonStartAutoScan.Name = "buttonStartAutoScan";
+            this.buttonStartAutoScan.Size = new System.Drawing.Size(80, 23);
+            this.buttonStartAutoScan.TabIndex = 2;
+            this.buttonStartAutoScan.Text = "Start Scans";
+            this.buttonStartAutoScan.UseVisualStyleBackColor = true;
+            this.buttonStartAutoScan.Click += new System.EventHandler(this.buttonStartAutoScan_Click);
             // 
-            // button_EraseBlock
+            // comboBoxAutoScanUnit
             // 
-            this.button_EraseBlock.Location = new System.Drawing.Point(6, 29);
-            this.button_EraseBlock.Name = "button_EraseBlock";
-            this.button_EraseBlock.Size = new System.Drawing.Size(75, 23);
-            this.button_EraseBlock.TabIndex = 29;
-            this.button_EraseBlock.Text = "Erase Block";
-            this.button_EraseBlock.UseVisualStyleBackColor = true;
-            this.button_EraseBlock.Click += new System.EventHandler(this.button_EraseBlock_Click);
+            this.comboBoxAutoScanUnit.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxAutoScanUnit.FormattingEnabled = true;
+            this.comboBoxAutoScanUnit.Location = new System.Drawing.Point(121, 17);
+            this.comboBoxAutoScanUnit.Name = "comboBoxAutoScanUnit";
+            this.comboBoxAutoScanUnit.Size = new System.Drawing.Size(66, 21);
+            this.comboBoxAutoScanUnit.TabIndex = 1;
             // 
-            // label_Speed
+            // textBoxAutoScanInterval
             // 
-            this.label_Speed.AutoSize = true;
-            this.label_Speed.Location = new System.Drawing.Point(88, 85);
-            this.label_Speed.Name = "label_Speed";
-            this.label_Speed.Size = new System.Drawing.Size(0, 13);
-            this.label_Speed.TabIndex = 25;
+            this.textBoxAutoScanInterval.Location = new System.Drawing.Point(55, 17);
+            this.textBoxAutoScanInterval.Name = "textBoxAutoScanInterval";
+            this.textBoxAutoScanInterval.Size = new System.Drawing.Size(60, 20);
+            this.textBoxAutoScanInterval.TabIndex = 0;
+            this.textBoxAutoScanInterval.Text = "6";
+            // 
+            // labelAutoScanInterval
+            // 
+            this.labelAutoScanInterval.AutoSize = true;
+            this.labelAutoScanInterval.Location = new System.Drawing.Point(6, 20);
+            this.labelAutoScanInterval.Name = "labelAutoScanInterval";
+            this.labelAutoScanInterval.Size = new System.Drawing.Size(45, 13);
+            this.labelAutoScanInterval.TabIndex = 0;
+            this.labelAutoScanInterval.Text = "Interval:";
             // 
             // panel2
             // 
@@ -565,7 +594,8 @@
             this.panel2.Location = new System.Drawing.Point(171, 4);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(133, 162);
-            this.panel2.TabIndex = 16;
+            this.panel2.TabIndex = 1;
+            this.panel2.Paint += new System.Windows.Forms.PaintEventHandler(this.panel2_Paint);
             // 
             // Shutter
             // 
@@ -573,7 +603,7 @@
             this.Shutter.Location = new System.Drawing.Point(7, 47);
             this.Shutter.Name = "Shutter";
             this.Shutter.Size = new System.Drawing.Size(89, 17);
-            this.Shutter.TabIndex = 26;
+            this.Shutter.TabIndex = 1;
             this.Shutter.Text = "Open Shutter";
             this.Shutter.UseVisualStyleBackColor = true;
             this.Shutter.CheckedChanged += new System.EventHandler(this.Shutter_CheckedChanged);
@@ -583,7 +613,7 @@
             this.button_Stop0.Location = new System.Drawing.Point(87, 104);
             this.button_Stop0.Name = "button_Stop0";
             this.button_Stop0.Size = new System.Drawing.Size(39, 50);
-            this.button_Stop0.TabIndex = 25;
+            this.button_Stop0.TabIndex = 5;
             this.button_Stop0.Text = "Stop";
             this.button_Stop0.UseVisualStyleBackColor = true;
             this.button_Stop0.Click += new System.EventHandler(this.button_Stop0_Click);
@@ -595,7 +625,7 @@
             this.label3.Location = new System.Drawing.Point(20, 9);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(81, 13);
-            this.label3.TabIndex = 22;
+            this.label3.TabIndex = 0;
             this.label3.Text = "Normal Mode";
             // 
             // panel3
@@ -611,14 +641,14 @@
             this.panel3.Location = new System.Drawing.Point(305, 4);
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(133, 162);
-            this.panel3.TabIndex = 17;
+            this.panel3.TabIndex = 2;
             // 
             // button_Stop1
             // 
             this.button_Stop1.Location = new System.Drawing.Point(87, 104);
             this.button_Stop1.Name = "button_Stop1";
             this.button_Stop1.Size = new System.Drawing.Size(39, 50);
-            this.button_Stop1.TabIndex = 23;
+            this.button_Stop1.TabIndex = 5;
             this.button_Stop1.Text = "Stop";
             this.button_Stop1.UseVisualStyleBackColor = true;
             this.button_Stop1.Click += new System.EventHandler(this.button_Stop1_Click);
@@ -628,7 +658,7 @@
             this.button_MuitlScan1.Location = new System.Drawing.Point(7, 132);
             this.button_MuitlScan1.Name = "button_MuitlScan1";
             this.button_MuitlScan1.Size = new System.Drawing.Size(75, 23);
-            this.button_MuitlScan1.TabIndex = 24;
+            this.button_MuitlScan1.TabIndex = 4;
             this.button_MuitlScan1.Text = "Multi Scan";
             this.button_MuitlScan1.UseVisualStyleBackColor = true;
             this.button_MuitlScan1.Click += new System.EventHandler(this.button_MuitlScan1_Click);
@@ -638,7 +668,7 @@
             this.button_SingleScan1.Location = new System.Drawing.Point(7, 104);
             this.button_SingleScan1.Name = "button_SingleScan1";
             this.button_SingleScan1.Size = new System.Drawing.Size(75, 23);
-            this.button_SingleScan1.TabIndex = 23;
+            this.button_SingleScan1.TabIndex = 3;
             this.button_SingleScan1.Text = "Single Scan";
             this.button_SingleScan1.UseVisualStyleBackColor = true;
             this.button_SingleScan1.Click += new System.EventHandler(this.button_SingleScan1_Click);
@@ -650,7 +680,7 @@
             this.label4.Location = new System.Drawing.Point(26, 9);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(78, 13);
-            this.label4.TabIndex = 22;
+            this.label4.TabIndex = 0;
             this.label4.Text = "Speed Mode";
             // 
             // tabPage2
@@ -662,7 +692,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(782, 169);
+            this.tabPage2.Size = new System.Drawing.Size(781, 169);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Temperature";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -675,7 +705,7 @@
             this.groupBox26.Location = new System.Drawing.Point(7, 74);
             this.groupBox26.Name = "groupBox26";
             this.groupBox26.Size = new System.Drawing.Size(235, 63);
-            this.groupBox26.TabIndex = 70;
+            this.groupBox26.TabIndex = 2;
             this.groupBox26.TabStop = false;
             this.groupBox26.Text = "CCD Temperature Set";
             // 
@@ -686,7 +716,7 @@
             this.label10.Location = new System.Drawing.Point(7, 44);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(83, 13);
-            this.label10.TabIndex = 57;
+            this.label10.TabIndex = 2;
             this.label10.Text = "(-30 °C...+10 °C)";
             // 
             // label46
@@ -696,7 +726,7 @@
             this.label46.Location = new System.Drawing.Point(5, 27);
             this.label46.Name = "label46";
             this.label46.Size = new System.Drawing.Size(90, 13);
-            this.label46.TabIndex = 51;
+            this.label46.TabIndex = 0;
             this.label46.Text = "Temperature(°C) :";
             // 
             // numericUpDown_CCDTemp
@@ -714,7 +744,7 @@
             -2147483648});
             this.numericUpDown_CCDTemp.Name = "numericUpDown_CCDTemp";
             this.numericUpDown_CCDTemp.Size = new System.Drawing.Size(60, 20);
-            this.numericUpDown_CCDTemp.TabIndex = 56;
+            this.numericUpDown_CCDTemp.TabIndex = 1;
             this.numericUpDown_CCDTemp.ValueChanged += new System.EventHandler(this.numericUpDown_CCDTemp_ValueChanged);
             // 
             // groupBox25
@@ -725,7 +755,7 @@
             this.groupBox25.Location = new System.Drawing.Point(249, 74);
             this.groupBox25.Name = "groupBox25";
             this.groupBox25.Size = new System.Drawing.Size(230, 63);
-            this.groupBox25.TabIndex = 69;
+            this.groupBox25.TabIndex = 3;
             this.groupBox25.TabStop = false;
             this.groupBox25.Text = "External Temperature Set";
             // 
@@ -736,7 +766,7 @@
             this.label11.Location = new System.Drawing.Point(6, 44);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(74, 13);
-            this.label11.TabIndex = 58;
+            this.label11.TabIndex = 2;
             this.label11.Text = "(0 °C...+30 °C)";
             // 
             // label56
@@ -746,7 +776,7 @@
             this.label56.Location = new System.Drawing.Point(5, 27);
             this.label56.Name = "label56";
             this.label56.Size = new System.Drawing.Size(90, 13);
-            this.label56.TabIndex = 54;
+            this.label56.TabIndex = 0;
             this.label56.Text = "Temperature(°C) :";
             // 
             // numericUpDown_ExternalTemp
@@ -759,7 +789,7 @@
             0});
             this.numericUpDown_ExternalTemp.Name = "numericUpDown_ExternalTemp";
             this.numericUpDown_ExternalTemp.Size = new System.Drawing.Size(60, 20);
-            this.numericUpDown_ExternalTemp.TabIndex = 57;
+            this.numericUpDown_ExternalTemp.TabIndex = 1;
             this.numericUpDown_ExternalTemp.ValueChanged += new System.EventHandler(this.numericUpDown_ExternalTemp_ValueChanged);
             // 
             // groupBox22
@@ -770,7 +800,7 @@
             this.groupBox22.Location = new System.Drawing.Point(8, 15);
             this.groupBox22.Name = "groupBox22";
             this.groupBox22.Size = new System.Drawing.Size(235, 48);
-            this.groupBox22.TabIndex = 68;
+            this.groupBox22.TabIndex = 0;
             this.groupBox22.TabStop = false;
             this.groupBox22.Text = "CCD Temperature Monitor";
             // 
@@ -780,7 +810,7 @@
             this.textBox_USB3Temp0.Location = new System.Drawing.Point(112, 20);
             this.textBox_USB3Temp0.Name = "textBox_USB3Temp0";
             this.textBox_USB3Temp0.Size = new System.Drawing.Size(46, 20);
-            this.textBox_USB3Temp0.TabIndex = 5;
+            this.textBox_USB3Temp0.TabIndex = 1;
             // 
             // label58
             // 
@@ -789,7 +819,7 @@
             this.label58.Location = new System.Drawing.Point(5, 22);
             this.label58.Name = "label58";
             this.label58.Size = new System.Drawing.Size(90, 13);
-            this.label58.TabIndex = 6;
+            this.label58.TabIndex = 0;
             this.label58.Text = "Temperature(°C) :";
             // 
             // button_USB3GetTemp0
@@ -798,7 +828,7 @@
             this.button_USB3GetTemp0.Location = new System.Drawing.Point(160, 17);
             this.button_USB3GetTemp0.Name = "button_USB3GetTemp0";
             this.button_USB3GetTemp0.Size = new System.Drawing.Size(69, 23);
-            this.button_USB3GetTemp0.TabIndex = 10;
+            this.button_USB3GetTemp0.TabIndex = 2;
             this.button_USB3GetTemp0.Text = "Get Temp";
             this.button_USB3GetTemp0.UseVisualStyleBackColor = true;
             this.button_USB3GetTemp0.Click += new System.EventHandler(this.button_USB3GetTemp0_Click);
@@ -811,7 +841,7 @@
             this.groupBox21.Location = new System.Drawing.Point(249, 15);
             this.groupBox21.Name = "groupBox21";
             this.groupBox21.Size = new System.Drawing.Size(231, 48);
-            this.groupBox21.TabIndex = 67;
+            this.groupBox21.TabIndex = 1;
             this.groupBox21.TabStop = false;
             this.groupBox21.Text = "External Temperature Monitor";
             // 
@@ -821,7 +851,7 @@
             this.textBox_USB3Temp1.Location = new System.Drawing.Point(106, 20);
             this.textBox_USB3Temp1.Name = "textBox_USB3Temp1";
             this.textBox_USB3Temp1.Size = new System.Drawing.Size(46, 20);
-            this.textBox_USB3Temp1.TabIndex = 5;
+            this.textBox_USB3Temp1.TabIndex = 1;
             // 
             // label57
             // 
@@ -830,7 +860,7 @@
             this.label57.Location = new System.Drawing.Point(5, 22);
             this.label57.Name = "label57";
             this.label57.Size = new System.Drawing.Size(90, 13);
-            this.label57.TabIndex = 6;
+            this.label57.TabIndex = 0;
             this.label57.Text = "Temperature(°C) :";
             // 
             // button_USB3GetTemp1
@@ -839,7 +869,7 @@
             this.button_USB3GetTemp1.Location = new System.Drawing.Point(154, 17);
             this.button_USB3GetTemp1.Name = "button_USB3GetTemp1";
             this.button_USB3GetTemp1.Size = new System.Drawing.Size(69, 23);
-            this.button_USB3GetTemp1.TabIndex = 9;
+            this.button_USB3GetTemp1.TabIndex = 2;
             this.button_USB3GetTemp1.Text = "Get Temp";
             this.button_USB3GetTemp1.UseVisualStyleBackColor = true;
             this.button_USB3GetTemp1.Click += new System.EventHandler(this.button_USB3GetTemp1_Click);
@@ -851,7 +881,7 @@
             this.panel6.Location = new System.Drawing.Point(214, 195);
             this.panel6.Name = "panel6";
             this.panel6.Size = new System.Drawing.Size(789, 375);
-            this.panel6.TabIndex = 17;
+            this.panel6.TabIndex = 2;
             // 
             // zgOverlay
             // 
@@ -859,15 +889,15 @@
             this.zgOverlay.Dock = System.Windows.Forms.DockStyle.Fill;
             this.zgOverlay.Location = new System.Drawing.Point(0, 0);
             this.zgOverlay.Name = "zgOverlay";
-            this.zgOverlay.ScrollGrace = 0;
-            this.zgOverlay.ScrollMaxX = 0;
-            this.zgOverlay.ScrollMaxY = 0;
-            this.zgOverlay.ScrollMaxY2 = 0;
-            this.zgOverlay.ScrollMinX = 0;
-            this.zgOverlay.ScrollMinY = 0;
-            this.zgOverlay.ScrollMinY2 = 0;
+            this.zgOverlay.ScrollGrace = 0D;
+            this.zgOverlay.ScrollMaxX = 0D;
+            this.zgOverlay.ScrollMaxY = 0D;
+            this.zgOverlay.ScrollMaxY2 = 0D;
+            this.zgOverlay.ScrollMinX = 0D;
+            this.zgOverlay.ScrollMinY = 0D;
+            this.zgOverlay.ScrollMinY2 = 0D;
             this.zgOverlay.Size = new System.Drawing.Size(789, 375);
-            this.zgOverlay.TabIndex = 1;
+            this.zgOverlay.TabIndex = 0;
             this.zgOverlay.TabStop = false;
             // 
             // Form1
@@ -891,8 +921,8 @@
             this.panel50.ResumeLayout(false);
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
-            this.panel5.ResumeLayout(false);
-            this.panel5.PerformLayout();
+            this.groupBoxAutoScan.ResumeLayout(false);
+            this.groupBoxAutoScan.PerformLayout();
             this.panel2.ResumeLayout(false);
             this.panel2.PerformLayout();
             this.panel3.ResumeLayout(false);
@@ -920,7 +950,6 @@
         private System.Windows.Forms.Button button_SingleScan0;
         private System.Windows.Forms.Panel panel4;
         private System.Windows.Forms.Panel panel1;
-        //private System.Windows.Forms.PictureBox zgOverlay;
         private System.Windows.Forms.Button button_MuitlScan0;
         private System.Windows.Forms.Button button_ChartReset;
         private System.Windows.Forms.TreeView DeviceTreeView;
@@ -933,7 +962,6 @@
         private System.Windows.Forms.CheckBox ExtTrigger;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox textBox_FrameNum;
-        private System.Windows.Forms.Label label_totaltime;
         private System.Windows.Forms.CheckBox checkBox_Smooth;
         private System.Windows.Forms.CheckBox checkBox_DarkCompensate;
         private System.Windows.Forms.PictureBox pictureBox1;
@@ -945,11 +973,9 @@
         private System.Windows.Forms.Button button_MuitlScan1;
         private System.Windows.Forms.Button button_SingleScan1;
         private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.Panel panel5;
         private System.Windows.Forms.Panel panel9;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.Label label8;
-        private System.Windows.Forms.Label label_Speed;
         private System.Windows.Forms.Button button_Stop1;
         private System.Windows.Forms.Button button_Stop2;
         private System.Windows.Forms.Button button_Stop0;
@@ -958,11 +984,6 @@
         private System.Windows.Forms.ComboBox comboBox_Spectrometer;
         private System.Windows.Forms.ComboBox comboBox1_Channel;
         private SpecGraph.SpecGraphControl zgOverlay;
-        private System.Windows.Forms.Label label7;
-        private System.Windows.Forms.Button button_ReadBlock;
-        private System.Windows.Forms.Button button_WriteBlock;
-        private System.Windows.Forms.Button button_EraseBlock;
-        private System.Windows.Forms.ListBox listBox1;
         private System.Windows.Forms.CheckBox Shutter;
         private System.Windows.Forms.Label label_Scancount;
         private System.Windows.Forms.Label label9;
@@ -986,6 +1007,18 @@
         private System.Windows.Forms.Button button_USB3GetTemp1;
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.Label label11;
+        private System.Windows.Forms.Button button_SaveGraph;
+        private System.Windows.Forms.Button button_CaptureDarkSpectrum;
+        private System.Windows.Forms.GroupBox groupBoxAutoScan;
+        private System.Windows.Forms.Label labelAutoScanStatus;
+        private System.Windows.Forms.Button buttonStopAutoScan;
+        private System.Windows.Forms.Button buttonStartAutoScan;
+        private System.Windows.Forms.ComboBox comboBoxAutoScanUnit;
+        private System.Windows.Forms.TextBox textBoxAutoScanInterval;
+        private System.Windows.Forms.Label labelAutoScanInterval;
+        private System.Windows.Forms.Timer timerAutoScan;
+        private System.Windows.Forms.Button buttonSetAutoScanFolder;
+        private System.Windows.Forms.FolderBrowserDialog folderBrowserDialogAutoScan;
     }
 }
 
