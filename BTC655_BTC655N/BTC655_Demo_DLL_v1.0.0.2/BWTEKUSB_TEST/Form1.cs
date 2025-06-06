@@ -1622,6 +1622,7 @@ namespace BTC655_Demo
                 return;
             }
 
+
             // Close the shutter
             bwtekSetTTLOut(4, 0, spec_para[current_deviceindex].shutter_inverse, spec_para[current_deviceindex].channel);
             Shutter.Checked = false;
