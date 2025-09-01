@@ -1,10 +1,10 @@
-# BWTEK Spectrometer Remote Control (C++)
+# BWTEK Spectrometer Remote Control (C++/C#)
 
 This repository provides a **C++/C Sharp implementation** for controlling a BWTEK spectrometer and managing measurements remotely. It is designed for setups where direct physical access to the spectrometer is limited or when measurements need to be taken periodically.
 
 ## Features
 * Connect to and initialize a BWTEK spectrometer.
-* Trigger spectral measurements via C++ code.
+* Trigger spectral measurements via C++ and C# code.
 * Retrieve and process spectral data.
 * Remote management of measurement sessions through a lightweight server or API interface.
 * Export data for downstream analysis.
